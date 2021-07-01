@@ -29,6 +29,8 @@ public:
 private slots:
     void on_btnOpenFileJsons_clicked();
 
+    void on_checkBoxShowAdditInfo_clicked(bool checked);
+
 private:
     struct box
     {
@@ -49,6 +51,8 @@ private:
 
     void convertCoordinates();
     void saveToTxt(const QString &name);
+    int countBoxInAllImages = 0;
+    QMap <QString, int> clasesInFiles;
 
     QVector<box> boxInTheImage;
     Ui::Parser *ui;

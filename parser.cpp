@@ -6,6 +6,8 @@ Parser::Parser(QWidget *parent)
     , ui(new Ui::Parser)
 {
     ui->setupUi(this);
+    ui->labelCountAllImage->setVisible(false);
+    ui->lineEditCountAllBox->setVisible(false);
 }
 
 Parser::~Parser()
@@ -45,6 +47,7 @@ void Parser::read(const QJsonObject &json)
         QJsonObject temporaryObject = json[NameFile].toObject();
         if (temporaryObject.contains("annotations") && temporaryObject["annotations"].isArray()) {
             QJsonArray tempArray = temporaryObject["annotations"].toArray();
+            countBoxInAllImages += tempArray.size();
             foreach (auto element, tempArray) {
                 QJsonObject boxObject =  element.toObject();
                 box inBox;
@@ -54,9 +57,11 @@ void Parser::read(const QJsonObject &json)
                 inBox.width = boxObject["width"].toString().toFloat();
                 inBox.height = boxObject["height"].toString().toFloat();
                 boxInTheImage.push_back(inBox);
+
+                clasesInFiles.insert(QString::number(inBox.id), clasesInFiles[QString::number(inBox.id)] + 1);
             }
             if (ui->checkBoxConvertCoordinates->isChecked() &&
-                        !(ui->lineEditWidth->text().isEmpty() || ui->lineEditHeight->text().isEmpty())) {
+                      !(ui->lineEditWidth->text().isEmpty() || ui->lineEditHeight->text().isEmpty())) {
                 qDebug() << "converting...";
                 convertCoordinates();
             }
@@ -67,6 +72,7 @@ void Parser::read(const QJsonObject &json)
                 saveToTxt(tempNameFile);
             }
         }
+        boxInTheImage.clear();
     }
 }
 
@@ -98,9 +104,22 @@ void Parser::saveToTxt(const QString &name)
     }
     QTextStream streamToFile(&loadFile);
     foreach(auto& theBox, boxInTheImage) {
-        streamToFile << theBox.id << theBox.x << theBox.y << theBox.width << theBox.height << "\n";
+        if (ui->checkBoxConvertCoordinates->isChecked()) {
+            streamToFile << theBox.id << " " << theBox.paramX << " " << theBox.paramY << " " << theBox.paramWidth << " " << theBox.paramHeight << "\n";
+        } else {
+            streamToFile << theBox.id << " " << theBox.x << " " << theBox.y << " " << theBox.width << " " << theBox.height << "\n";
+        }
     }
     loadFile.close();
     qDebug() << "saved";
 }
 
+
+void Parser::on_checkBoxShowAdditInfo_clicked(bool checked)
+{
+    if (checked) {
+        ui->lineEditCountAllBox->setText(QString::number(countBoxInAllImages));
+    }
+    ui->labelCountAllImage->setVisible(checked);
+    ui->lineEditCountAllBox->setVisible(checked);
+}
