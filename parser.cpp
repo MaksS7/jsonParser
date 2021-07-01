@@ -12,53 +12,95 @@ Parser::~Parser()
 {
     delete ui;
 }
-void Parser::loadGame()
+void Parser::load()
 {
-    QFile loadFile(QStringLiteral("save.json"));
+    QStringList fileNames = QFileDialog::getOpenFileNames(
+                            this, "Select one or more files to open",
+                            QDir::currentPath(), "Json(s) (*.json)");
+    ui->spinBoxCountJsonFiles->setValue(fileNames.size());
 
-    if (!loadFile.open(QIODevice::ReadOnly)) {
-        qWarning("Couldn't open save file.");
+    QFileInfo info(fileNames[0]);
+    curentPath = info.path();
 
+    foreach (auto &file, fileNames) {
+        QFile loadFile(file);
+        if (!loadFile.open(QIODevice::ReadOnly)) {
+            qWarning("Couldn't open file.");
+        }
+        QJsonDocument loadDoc(QJsonDocument::fromJson(loadFile.readAll()));
+        read(loadDoc.object());
+        loadFile.close();
     }
-
-    QByteArray saveData = loadFile.readAll();
-
-    QJsonDocument loadDoc(QJsonDocument::fromJson(saveData));
-    read(loadDoc.object());
-
-
-//    QTextStream(stdout) << "Loaded save for "
-//                        << loadDoc["player"]["name"].toString()
-//                        << " using "
-//                        << (saveFormat != Json ? "binary " : "") << "JSON...\n";
 }
 
 void Parser::read(const QJsonObject &json)
 {
     if (json.isEmpty()) {
-        qDebug() << "file empty";
+        qWarning("file empty");
         return;
     }
 
     QStringList nameFileImages = json.keys();
-    foreach (auto NameFile, nameFileImages) {
+    foreach (auto& NameFile, nameFileImages) {
         QJsonObject temporaryObject = json[NameFile].toObject();
         if (temporaryObject.contains("annotations") && temporaryObject["annotations"].isArray()) {
             QJsonArray tempArray = temporaryObject["annotations"].toArray();
             foreach (auto element, tempArray) {
                 QJsonObject boxObject =  element.toObject();
-                QStringList tempListString;
-                tempListString.push_back(boxObject["x"].toString());
-                tempListString.push_back(boxObject["y"].toString());
-                tempListString.push_back(boxObject["width"].toString());
-                tempListString.push_back(boxObject["height"].toString());
-                boxInTheImage.insert(boxObject["label"].toString(), tempListString);
+                box inBox;
+                inBox.id = boxObject["label"].toString().toInt();
+                inBox.x = boxObject["x"].toString().toFloat();
+                inBox.y = boxObject["y"].toString().toFloat();
+                inBox.width = boxObject["width"].toString().toFloat();
+                inBox.height = boxObject["height"].toString().toFloat();
+                boxInTheImage.push_back(inBox);
+            }
+            if (ui->checkBoxConvertCoordinates->isChecked() &&
+                        !(ui->lineEditWidth->text().isEmpty() || ui->lineEditHeight->text().isEmpty())) {
+                qDebug() << "converting...";
+                convertCoordinates();
+            }
+            if (ui->checkBoxSaveToTxt->isChecked()) {
+                qDebug() << "saving...";
+                QString tempNameFile = NameFile;
+                tempNameFile.replace(tempNameFile.size() - 4, 4, ".txt");
+                saveToTxt(tempNameFile);
             }
         }
     }
 }
 
-void Parser::on_pushButton_clicked()
+void Parser::on_btnOpenFileJsons_clicked()
 {
-    loadGame();
+    load();
 }
+
+void Parser::convertCoordinates()
+{
+    uint w = ui->lineEditWidth->text().toUInt();
+    uint h = ui->lineEditHeight->text().toUInt();
+    foreach (auto element, boxInTheImage) {
+        element.sizeImage.setX(w);
+        element.sizeImage.setY(h);
+        element.paramX = (element.x + element.width / 2) / w;
+        element.paramX = (element.y + element.height / 2) / h;
+        element.paramWidth = element.width / w;
+        element.paramHeight = element.height / h;
+    }
+    qDebug() << "converted";
+}
+
+void Parser::saveToTxt(const QString &name)
+{
+    QFile loadFile(curentPath + "/" + name);
+    if (!loadFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        qWarning("Couldn't open file.");
+    }
+    QTextStream streamToFile(&loadFile);
+    foreach(auto& theBox, boxInTheImage) {
+        streamToFile << theBox.id << theBox.x << theBox.y << theBox.width << theBox.height << "\n";
+    }
+    loadFile.close();
+    qDebug() << "saved";
+}
+

@@ -10,6 +10,7 @@
 #include <QDebug>
 #include <QString>
 #include <QMap>
+#include <QFileDialog>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Parser; }
@@ -22,14 +23,34 @@ class Parser : public QMainWindow
 public:
     Parser(QWidget *parent = nullptr);
     ~Parser();
-    void loadGame();
+    void load();
     void read(const QJsonObject &json);
 
 private slots:
-    void on_pushButton_clicked();
+    void on_btnOpenFileJsons_clicked();
 
 private:
-    QMultiMap<QString, QStringList> boxInTheImage;
+    struct box
+    {
+        int id;
+        float x;
+        float y;
+        float width;
+        float height;
+        QPoint sizeImage;
+        float paramX;
+        float paramY;
+        float paramWidth;
+        float paramHeight;
+    };
+
+    QString pathToDir;
+    QString curentPath;
+
+    void convertCoordinates();
+    void saveToTxt(const QString &name);
+
+    QVector<box> boxInTheImage;
     Ui::Parser *ui;
 };
 #endif // PARSER_H
