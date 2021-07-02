@@ -11,6 +11,7 @@
 #include <QString>
 #include <QMap>
 #include <QFileDialog>
+#include <QMessageBox>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Parser; }

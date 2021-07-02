@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>611</width>
-    <height>163</height>
+    <width>801</width>
+    <height>317</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -200,6 +200,32 @@ on all images</string>
     <property name="text">
      <string>Show additional info</string>
     </property>
+    <property name="checkable">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QTableWidget" name="tableWidgetCountClasses">
+    <property name="geometry">
+     <rect>
+      <x>490</x>
+      <y>50</y>
+      <width>131</width>
+      <height>120</height>
+     </rect>
+    </property>
+    <property name="rowCount">
+     <number>2</number>
+    </property>
+    <property name="columnCount">
+     <number>2</number>
+    </property>
+    <attribute name="verticalHeaderMinimumSectionSize">
+     <number>21</number>
+    </attribute>
+    <row/>
+    <row/>
+    <column/>
+    <column/>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -207,7 +233,7 @@ on all images</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>611</width>
+     <width>801</width>
      <height>22</height>
     </rect>
    </property>

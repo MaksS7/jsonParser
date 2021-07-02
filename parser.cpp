@@ -8,6 +8,9 @@ Parser::Parser(QWidget *parent)
     ui->setupUi(this);
     ui->labelCountAllImage->setVisible(false);
     ui->lineEditCountAllBox->setVisible(false);
+
+    ui->tableWidgetCountClasses->setHorizontalHeaderLabels({"Class", "Count"});
+    ui->tableWidgetCountClasses->setVisible(false);
 }
 
 Parser::~Parser()
@@ -19,6 +22,12 @@ void Parser::load()
     QStringList fileNames = QFileDialog::getOpenFileNames(
                             this, "Select one or more files to open",
                             QDir::currentPath(), "Json(s) (*.json)");
+
+    if (fileNames.isEmpty()) {
+        QMessageBox::warning(this, tr("Parser"), tr("No file for parser"));
+        return;
+    }
+
     ui->spinBoxCountJsonFiles->setValue(fileNames.size());
 
     QFileInfo info(fileNames[0]);
@@ -74,6 +83,7 @@ void Parser::read(const QJsonObject &json)
         }
         boxInTheImage.clear();
     }
+    ui->checkBoxShowAdditInfo->setCheckable(true);
 }
 
 void Parser::on_btnOpenFileJsons_clicked()
@@ -119,7 +129,19 @@ void Parser::on_checkBoxShowAdditInfo_clicked(bool checked)
 {
     if (checked) {
         ui->lineEditCountAllBox->setText(QString::number(countBoxInAllImages));
+        int count = 0;
+        ui->tableWidgetCountClasses->setRowCount(clasesInFiles.size());
+        foreach (auto item, clasesInFiles.keys()) {
+            QTableWidgetItem *classes = new QTableWidgetItem(item);
+            QTableWidgetItem *countClasses = new QTableWidgetItem(QString::number(clasesInFiles[item]));
+            ui->tableWidgetCountClasses->setItem(count, 0, classes);
+            ui->tableWidgetCountClasses->setItem(count++, 1, countClasses);
+        }
+        ui->tableWidgetCountClasses->setColumnWidth(0, 4);
+        ui->tableWidgetCountClasses->setColumnWidth(1, 4);
     }
     ui->labelCountAllImage->setVisible(checked);
     ui->lineEditCountAllBox->setVisible(checked);
+    ui->tableWidgetCountClasses->setVisible(checked);
+
 }
